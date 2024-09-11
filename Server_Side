@@ -1,0 +1,38 @@
+import java.io.*;
+import java.net.*;
+import java.util.Arrays;
+
+public class UDPServer {
+    public static void main(String[] args) {
+        try {
+            // Create a DatagramSocket to listen for incoming packets
+            DatagramSocket serverSocket = new DatagramSocket(5000);
+            byte[] receiveData = new byte[1024];
+            byte[] sendData = new byte[1024];
+
+            while (true) {
+                // Receive the file name from the client
+                DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+                serverSocket.receive(receivePacket);
+                String fileName = new String(receivePacket.getData(), 0, receivePacket.getLength());
+
+                // Create a FileOutputStream to write the file
+                FileOutputStream fos = new FileOutputStream(fileName);
+
+                // Receive the file data in chunks
+                int bytesRead;
+                do {
+                    receivePacket = new DatagramPacket(receiveData, receiveData.length);
+                    serverSocket.receive(receivePacket);
+                    bytesRead = receivePacket.getLength();
+                    fos.write(receiveData, 0, bytesRead);
+                } while (bytesRead > 0);
+
+                fos.close();
+                System.out.println("File " + fileName + " received successfully.");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
